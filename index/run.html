@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Game Canvas</title>
+	<link rel="stylesheet" type="text/css" href="css.css">
+</head>
+<body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io.connect();
+  var dataOnline = {};
+   socket.on('getData', function (data) {
+      dataOnline = data;
+  });
+ 
+  
+
+  function sendData(data) {
+      socket.emit('moving', data);
+    }
+
+  
+
+  function compareObj(obj1, obj2) {
+    for(var key in obj1) {
+      if(obj1[key] != obj2[key]) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  
+</script>
+  <script src="index/GAME_LEVELS.js"></script>
+  <script src="index/game.js"></script>
+  <script src="index/paintingCanv.js"></script>
+  
+
+  <script>
+    runGame(GAME_LEVELS, CanvasDisplay);
+  </script>
+</body>
+</html>
