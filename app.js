@@ -37,8 +37,7 @@ var io = require('socket.io')(server);
 
 var rooms = [];
 
-var test = new Room('test-1');
-var tes2 = new Room('test-2');
+
 
 function Room(name) {
   this.name = name;
