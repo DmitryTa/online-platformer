@@ -5,7 +5,11 @@ body{
 	height: 100vh;
 	overflow: hidden;
 	background-color: #1a4a6d;
-	34a6fb
+	font-family: 'Roboto', sans-serif;
+}
+body::selection {
+	background-color: transparent;
+	color: transparent;
 }
 canvas {
  	position: relative;
@@ -14,5 +18,223 @@ canvas {
  	transform: translate(-50%, -50%);
  	border: 1px solid #9acaed;
 }
+.menu {
+	width: 22vw;
+	min-width: 275px;
+	position: absolute;
+	z-index: 999;
+	right: 0;
+	bottom: 0;
+	transition: all 0.3s ease;
+	color: #fff;
+}
+.menu.close {
+	bottom: -280px;
+}
+.menu.close:hover {
+	bottom: -275px;
+}
+.menu__header {
+	padding: 8px;
+	margin-bottom: 65px;
+	text-align: center;
+	cursor: pointer;
+	font-size: 26px;
+	color: #fff;
+	letter-spacing: 1px;
+	background-color: rgba(26, 40, 81, .75);
+	border-radius: 5px;
 
 
+	box-shadow:  0px 2px 10px 0px #10132c;
+}
+.menu__wrapper {
+	width: 100%;
+	position: relative;
+	height: 230px;
+}
+.menu__main-block {
+	height: 100%;
+	padding: 0px;
+	box-sizing: border-box;
+	background-color: rgba(26, 40, 81, .85);
+}
+.menu__button {
+	padding: 10px;
+	margin-top: -40px;
+	display: block;
+	width: 49%;
+	box-sizing: border-box;
+	text-align: center;
+	color: #fff;
+	text-decoration: none;
+	border-bottom: 1px solid rgba(26, 40, 81, .85);
+	transition: all 0.2s ease-in;
+}
+.menu__button_join {
+	position: absolute;
+	right: 0;
+	background-color: #10132c;
+	border-radius: 15px 0 0 0;
+}
+.menu__joingame.close .menu__button_join:hover {
+	background-color: rgb(75, 94, 145);
+}
+.menu__button_create {
+	
+	border-radius: 5px 15px 0 0;
+	background-color: rgba(26, 40, 81, .95);
+}
+.menu__button_create:hover {
+	background-color: rgb(75, 94, 145);
+}
+.menu__button_create:active {
+	background-color: rgb(47, 68, 119);
+}
+.menu__newgame {
+	border-top: 1px solid transparent;
+}
+.menu__joingame {
+	position: absolute;
+	width: 100%;
+	left: 0;
+	bottom: 0;
+	background: url(map5.png) no-repeat;
+	background-size: cover;
+	transition: all 0.3s cubic-bezier(0.61, 0.2, 0.43, 0.88);
+	box-shadow:  0px -1px 6px 0px #10132c;
+	
+
+}
+.menu__joingame.close {
+	bottom: -190px;
+}
+
+.menu__creategame-block {
+	margin: 30px 15px;
+}
+
+.menu__creategame-block label,
+.menu__creategame-block button {
+	display: block;
+}
+.menu__creategame-block label {
+	margin-bottom: 15px;
+}
+.menu__creategame-block input {
+	width: 100%;
+	font-size: 18px;
+	padding: 5px;
+	margin-bottom: 20px;
+	color: #fff;
+	background-color: rgb(47, 68, 119);
+	outline: 0;
+	border: 0;
+	border-bottom: 2px solid red;
+}
+.menu__creategame-block button { 
+	padding: 5px 10px;
+	color: #fff;
+	background-color: rgb(47, 68, 119);
+	font-size: 16px;
+	outline: 0;
+	border: 1px solid rgb(75, 94, 145);
+	cursor: pointer;
+	border-radius: 5px;
+	transition: all 0.2s ease-in;
+}
+.menu__creategame-block button:hover { 
+	background-color: rgb(75, 94, 145);
+}
+.room-list {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	list-style: none;
+	transition: all 0.2s ease-in;
+}
+
+.room-list li {
+	display: flex;
+	width: 100%;
+	justify-content: space-between;
+	padding: 15px 15px;
+	position: relative;
+	color: #e6e7f2;
+	box-sizing: border-box;
+	cursor: pointer;
+	background-color: rgba(0,0,0,0.3);
+	border-bottom: 2px solid rgba(98, 102, 127,0.7);
+	transition: all 0.2s ease-in;
+}
+.room-list li:hover {
+	color: #fff;
+	background-color: rgba(98, 102, 127,0.3);	
+}
+.room-list .active:before {
+	content: "";
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 5px;
+	height: 0%;
+	background-color: green;
+	box-shadow: 0 0 5px 0px green;	
+	animation: act 0.2s ease-in; 
+	animation-fill-mode: forwards;
+}
+@keyframes act {
+	to {
+		height: 100%;
+	}
+}
+.info {
+	position: absolute;
+	z-index: 999;
+	left: 0;
+	bottom: 0;
+	width: 25vw;
+	padding: 15px;	
+}
+
+.info__message {
+	margin: 7px;
+	opacity: 0;
+	padding: 10px 20px 10px 40px;
+	position: relative;
+	border-radius: 5px;
+	color: #fff;
+	background-color: rgba(26, 40, 81, .75);
+	animation: appear 0.3s ease-in;
+	animation-fill-mode: forwards;
+}
+
+@keyframes appear {
+	to {
+		opacity: 1;
+	}
+}
+.info__message:before {
+	content: "";
+	position: relative;
+	display: inline-block;
+	left: -10px;
+	top: 2px;
+	width: 5px;
+	height: 15px;
+	background-color: grey;	
+}
+
+.info__message_error:before {
+	background-color: red;	
+	box-shadow: 0 0 2px 0px red;
+}
+
+.info__message_info:before {
+	background-color: green;
+	box-shadow: 0 0 5px 0px green;	
+}
+
+.list__wrapper {
+	overflow: hidden;
+}

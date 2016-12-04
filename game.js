@@ -18,7 +18,7 @@ function Level(plan) {
   this.height = plan.length;
   this.grid = [];
   this.actors = [];
-
+  this.isOnline = false;
 
   for (var y = 0; y < this.height; y++) {
     var line = plan[y], gridLine = [];
@@ -39,12 +39,13 @@ function Level(plan) {
   this.player = this.actors.filter(function(actor) {
     return actor.type == "player";
   })[0];
-
+  
   //============
+  /*
   this.onlinePlayer = this.actors.filter(function(actor) {
     return actor.type == "onlinePlayer";
   })[0];
-
+  */
   //--------------------
   
   this.status = this.finishDelay = null;
@@ -53,8 +54,7 @@ function Level(plan) {
 var actorChars = {
   "@": Player,
   "o": Coin,
-  "=": Lava, "|": Lava, "v": Lava,
-  "1": PlayerOnline
+  "=": Lava, "|": Lava, "v": Lava
 };
 
 
@@ -109,6 +109,18 @@ Level.prototype.actorAt = function(actor) {
   }
 };
 
+
+//====================
+
+Level.prototype.initOnlinePlayer = function() {
+  this.onlinePlayer = new PlayerOnline(this.player.pos);
+  this.actors.push(this.onlinePlayer);
+  this.isOnline = true;
+}
+
+//--------------------
+
+
 var maxStep = 0.05;
 
 Level.prototype.animate = function(step, keys) {
@@ -139,7 +151,7 @@ var playerXSpeed = 7;
 
 Player.prototype.moveX = function(step, level, keys) {
   this.speed.x = 0;
-
+ 
   if (keys.left) this.speed.x -= playerXSpeed;
   if (keys.right) this.speed.x += playerXSpeed;
 
@@ -175,8 +187,10 @@ Player.prototype.moveY = function(step, level, keys) {
 Player.prototype.act = function(step, level, keys) {
   this.moveX(step, level, keys);
   this.moveY(step, level, keys);
-  sendData(keys);
   
+  if (level.isOnline) 
+   this.moves = keys; 
+
   var otherActor = level.actorAt(this);
 
   if (otherActor) 
@@ -199,7 +213,7 @@ PlayerOnline.prototype = Object.create(Player.prototype);
 PlayerOnline.prototype.type = 'onlinePlayer';
 
 PlayerOnline.prototype.act = function(step, level, keys) {
-  keys = dataOnline;
+  keys = movesGet;
   this.moveX(step, level, keys);
   this.moveY(step, level, keys);
   

@@ -3,42 +3,243 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Game Canvas</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto&amp;subset=cyrillic" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="css.css">
 </head>
 <body>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  var socket = io.connect();
-  var dataOnline = {};
-   socket.on('getData', function (data) {
-    	dataOnline = data;
-  });
- 
   
 
-  function sendData(data) {
-  		socket.emit('moving', data);
-  	}
 
-  
 
-  function compareObj(obj1, obj2) {
-  	for(var key in obj1) {
-  		if(obj1[key] != obj2[key]) {
-  			return false;
-  		}
-  	}
-  	return true;
-  }
-  
 </script>
   <script src="GAME_LEVELS.js"></script>
   <script src="game.js"></script>
-  <script src="paintingCanv.js"></script>
-  
 
+  <script src="paintingCanv.js"></script> 
+  <script src="onlinegame.js"></script>
+
+<div class="menu close" id="menu">
+  <div class="menu__header">Play online</div>
+  <div class="menu__wrapper">
+    <div class="menu__main-block menu__newgame">
+      <a href="" class="menu__button menu__button_create" id="createGame">Cоздать игру</a>
+      <div class="menu__creategame-block">
+        <form action="" method="get" name="newGame">
+         <label for="gameName">Введите название:</label>
+          <input type="text" id="gameName" autocomplete="off">
+          <button type="submit">Создать</button>
+        </form> 
+      </div>
+    </div>
+    <div class="menu__main-block menu__joingame">
+      <a href="" class="menu__button menu__button_join" id="joinGame">Подключиться</a>
+      <div class="list__wrapper">
+      <ul id="roomlist" class="room-list">
+      </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="info" id="info"></div>
   <script>
-    runGame(GAME_LEVELS, CanvasDisplay);
-  </script>
+
+ var game = new OnlineGame(GAME_LEVELS, CanvasDisplay);
+     game.initLevel(0);
+     game.run();
+
+
+var controls = new GameControl({
+  elem: document.getElementById('menu'),
+  roomList: document.getElementById('roomlist'),
+  info: document.getElementById('info'),
+  socket: game.socket,
+  game: game
+});
+
+document.getElementById('menu').addEventListener('click', function(e) {
+
+  var joinGame = document.getElementById('joinGame'),
+    createGame = document.getElementById('createGame');
+
+  if(e.target.closest('.menu__header')) {
+    this.classList.toggle('close');
+  } else if(e.target == createGame) {
+    document.getElementById('joinGame').parentElement.classList.toggle('close');
+    e.preventDefault();
+  } else if (e.target == joinGame) {
+    if (joinGame.parentElement.classList.contains('close')) {
+      joinGame.parentElement.classList.remove('close');
+    }
+    e.preventDefault();
+  }
+
+});
+
+document.getElementById('roomlist').addEventListener('wheel', function(e) {
+
+  var target = e.target;
+    while (target != this.parentElement) {
+      if (target.tagName == 'UL') {
+        var marginTop = parseInt(getComputedStyle(target).marginTop),
+          delta = -e.deltaY ;
+        if(marginTop + delta > 0) {
+          target.style.marginTop = '0px';
+          return;
+        } else if (delta < 0 && target.lastElementChild.getBoundingClientRect().bottom < window.innerHeight) {
+          return;
+        }
+        target.style.marginTop = marginTop + delta +'px';
+        return;
+      }
+      target = target.parentElement;
+    }
+  
+})
+
+
+document.getElementById('menu').addEventListener('createdRoom', function() {
+  document.getElementById('joinGame').parentElement.classList.remove('close');
+})
+
+document.getElementById('menu').addEventListener('joinedRoom', function(e) {
+  if(controls.room) {
+    controls.room.classList.remove('active');
+  }
+  e.detail.classList.add('active');
+  controls.room = e.detail;
+})
+
+
+
+function GameControl(otions) {
+  this.elem = otions.elem;
+  this.createRoomForm = form = this.elem.querySelector('form');
+  this.roomList = otions.roomList;
+  this.infoBlock = otions.info;
+  this.socket = otions.socket;
+  this.game = otions.game;
+  var self = this;
+  this.room = null;
+
+  this.socket.on('addRoom', function(room) {
+      self.addRoom(room);
+    })
+    .on('deleteRoom', function(room) {
+      self.deleteRoom(room);
+    })
+    .on('udatePlayers', function(room) {
+      self.updateRoom(room);
+    })
+    .on('clientError', function(errText) {
+      self.showInfo(errText, 'error');
+    })
+    .on('info', function(infoText) {
+      self.showInfo(infoText, 'info');
+    })
+    .on('loadRooms', function(rooms) {
+      self.loadAllRooms(rooms);
+    })
+
+
+  form.addEventListener('submit', function(e) {
+    var input = form.querySelector('input');
+    if (input.value.length == 0) {
+      self.showInfo('Введите название для игры', 'error');
+    } else {
+      socket.emit('createRoom', input.value, function() {
+        var widgetEvent = new CustomEvent('createdRoom', {
+          bubbles: true
+        });
+
+        self.elem.dispatchEvent(widgetEvent);
+      });
+      input.value = "";
+    } 
+    e.preventDefault();
+  });
+
+  this.roomList.addEventListener('click', function(e) {
+    var target = e.target;
+    while (target != this) {
+      if (target.tagName == 'LI') {
+        socket.emit('joinRoom', target.firstElementChild.textContent, function() {
+        var widgetEvent = new CustomEvent('joinedRoom', {
+          bubbles: true,
+          detail: target
+        });
+        self.elem.dispatchEvent(widgetEvent);
+      });
+        self.game.compareLevel(self.game.currentLevel);
+        return;
+      }
+      target = target.parentElement;
+    }
+  })
+}
+
+GameControl.prototype.loadAllRooms = function(rooms) {
+  var self = this;
+  rooms.forEach(function(room) {
+    self.addRoom(room);
+  })
+}
+GameControl.prototype.addRoom = function(room) {
+  var li = document.createElement('li');
+  var spanRoomName = document.createElement('span');
+  spanRoomName.textContent = room.name;
+  var spanRoomPlayers = document.createElement('span');
+  spanRoomPlayers.textContent = room.players + '/2';
+  li.appendChild(spanRoomName);
+  li.appendChild(spanRoomPlayers);
+  this.roomList.appendChild(li);
+}
+
+GameControl.prototype.deleteRoom = function(room) {
+  var list = this.roomList.children;
+  [].forEach.call(list, function(li) {
+    if (li.firstElementChild.textContent == room.name) {
+      li.parentElement.removeChild(li);
+    }
+  })
+}
+
+GameControl.prototype.updateRoom = function(room) {
+  var list = this.roomList.children;
+  [].forEach.call(list, function(li) {
+    if (li.firstElementChild.textContent == room.name) {
+      li.children[1].textContent = room.players +'/2';
+    }
+  })
+}
+
+GameControl.prototype.showInfo = function(text, type) {
+  var info = this.infoBlock;
+  if(info.children.length > 3) {
+    info.removeChild(info.firstElementChild)
+  }
+  var message = document.createElement('p');
+  message.classList.add('info__message');
+  if(type == 'error') {
+    message.classList.add('info__message_error');
+  }
+  if(type == 'info') {
+    message.classList.add('info__message_info');
+  }
+  message.textContent = text;
+  info.appendChild(message);
+
+  setTimeout(function() {
+    if(!info.contains(message)) return;
+    info.removeChild(message);
+  }, 3000);
+}
+
+
+
+</script>
 </body>
 </html>

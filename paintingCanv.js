@@ -147,7 +147,7 @@ CanvasDisplay.prototype.drawPlayerOnline = function(x, y, width, height) {
 
   this.cx.restore();
 };
-// Сделать одну drawPlayer(player)
+
 CanvasDisplay.prototype.drawActors = function() {
   this.level.actors.forEach(function(actor) {
     var width = actor.size.x * scale;
@@ -166,22 +166,6 @@ CanvasDisplay.prototype.drawActors = function() {
     }
   }, this);
 };
-
-
-function runAnimation(frameFunc) {
-  var lastTime = null;
-  function frame(time) {
-    var stop = false;
-    if (lastTime != null) {
-      var timeStep = Math.min(time - lastTime, 100) / 1000;
-      stop = frameFunc(timeStep) === false;
-    }
-    lastTime = time;
-    if (!stop)
-      requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-}
 
 
 var arrowCodes = {37: "left", 38: "up", 39: "right"};
@@ -203,33 +187,134 @@ function trackKeys(codes) {
 
 var arrows = trackKeys(arrowCodes);
 
-function runLevel(level, Display, andThen) {
-  var display = new Display(document.body, level);
+
+
+function Game(plans, Display) {
+   this.PLANS = plans;
+   this.displayMethod = Display;
+}
+
+Game.prototype.initLevel = function(n) { 
+  this.currentLevel = n;
+  this.level = new Level(this.PLANS[n]);
+  this.display = new this.displayMethod(document.body, this.level);
+}
+
+Game.prototype.run = function() {
+ 
+    var level = this.level,
+    self = this;
+
+    this._runAnimation(function(step) {
+      level.animate(step, arrows);
+      self.display.drawFrame(step);
+
+      if (level.isFinished()) {
+        self._checkStatus(level.status);
+        return false;
+      }
+    })
+}
+
+Game.prototype._runAnimation = function(frameFunc) {
+  
+    var lastTime = null,
+      self = this;
+
+    function frame(time) {
+      var stop = false;
+      if (lastTime != null) {
+        var timeStep = Math.min(time - lastTime, 100) / 1000;
+        stop = frameFunc(timeStep) === false;
+      }
+      lastTime = time;
+      if (!stop)
+       self._requestId = requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+}
+
+Game.prototype._checkStatus = function(status) {
+
+   var n = this.currentLevel;
+    if (status == "lost") { 
+        this.changeLevel(n);     
+      } else if (n < this.PLANS.length - 1) { 
+        this.changeLevel(n + 1);
+      } else
+        console.log("You win!");
+}
+
+Game.prototype.changeLevel = function(n) {
+  if (!this.display) return;
+  this.stop();
+  this.display.clear();
+  this.initLevel(n);
+  this.run();
+}
+
+Game.prototype.stop = function() {
+  cancelAnimationFrame(this._requestId);
+}
+
+Game.prototype.destroy = function() {
+  this.stop();
+  this.display.clear();
+}
+
+
+/*
+ var game = new Game(GAME_LEVELS, CanvasDisplay);
+     game.initLevel(0);
+     game.run();
+
+
+
+Game.prototype.run = function() {
+ 
+    level = this.level,
+    plans = this.levelPlans,
+    n = this.currentLevelPlan,
+    self = this;
+
+
   runAnimation(function(step) {
     level.animate(step, arrows);
-    display.drawFrame(step);
+    self.display.drawFrame(step);
+
     if (level.isFinished()) {
-      display.clear();
-      if (andThen)
-        andThen(level.status);
+      if (checkStatus)
+        checkStatus(level.status);
       return false;
     }
   });
-}
+  
+  function runAnimation(frameFunc) {
+    var lastTime = null;
+    function frame(time) {
+      var stop = false;
+      if (lastTime != null) {
+        var timeStep = Math.min(time - lastTime, 100) / 1000;
+        stop = frameFunc(timeStep) === false;
+      }
+      lastTime = time;
+      if (!stop)
+       self._requestId = requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
 
-
-function runGame(plans, Display) {
-  function startLevel(n) {
-    runLevel(new Level(plans[n]), Display, function(status) {
-      if (status == "lost") 
-         startLevel(n);
-      else if (n < plans.length - 1)
-        startLevel(n + 1);
+  function checkStatus(status) {
+      if (status == "lost") { 
+        self.changeLevel(n);     
+      } else if (n < self.PLANS.length - 1) { 
+        if(self.level.isOnline) 
+          levelChange(n + 1)
+        self.changeLevel(n + 1);
+      }
       else
         console.log("You win!");
-    });
-  }
-  startLevel(0);
+    }
+
 }
-
-
+ */
