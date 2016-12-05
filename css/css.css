@@ -99,7 +99,7 @@ canvas {
 	width: 100%;
 	left: 0;
 	bottom: 0;
-	background: url(map5.png) no-repeat;
+	background: url(../img/map5.png) no-repeat;
 	background-size: cover;
 	transition: all 0.3s cubic-bezier(0.61, 0.2, 0.43, 0.88);
 	box-shadow:  0px -1px 6px 0px #10132c;
